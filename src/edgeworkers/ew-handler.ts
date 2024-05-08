@@ -2,10 +2,11 @@ import * as path from 'path';
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 import * as edgeWorkersSvc from './ew-service';
-import { ewJsonOutput, validateTarballLocally, buildTarball, determineTarballDownloadDir } from './client-manager';
+import {buildTarball, determineTarballDownloadDir, ewJsonOutput, validateTarballLocally} from './client-manager';
 import * as readline from 'readline-sync';
 
 import CryptoJS from 'crypto-js';
+
 const groupColumnsToKeep = ['groupId', 'groupName', 'capabilities'];
 const idColumnsToKeep = ['edgeWorkerId', 'name', 'groupId', 'resourceTierId'];
 const clonedColumnsToKeep = [
@@ -33,6 +34,14 @@ const activationColumnsToKeep = [
   'network',
   'createdBy',
   'createdTime',
+];
+const revisionColumnsToKeep = [
+  'edgeWorkerId',
+  'version',
+  'activationId',
+  'network',
+  'pinnedOnly',
+  'currentlyPinned',
 ];
 const deactivationColumnsToKeep = [
   'edgeWorkerId',
@@ -111,7 +120,7 @@ export async function showEdgeWorkerIdOverview(
       'Fetching EdgeWorker Ids...'
     );
     // remove outer envelope of JSON data
-    if (Object.prototype.hasOwnProperty.call(ids, 'edgeWorkerIds')){
+    if (Object.prototype.hasOwnProperty.call(ids, 'edgeWorkerIds')) {
       ids = ids['edgeWorkerIds'];
     }
   } else {
@@ -254,12 +263,12 @@ export async function getResourceTierInfo() {
   resourceTierList.forEach(function (resTier, index) {
     console.log(
       index +
-        1 +
-        '. Resource Tier ' +
-        resTier['resourceTierId'] +
-        ' ' +
-        resTier['resourceTierName'] +
-        '\n'
+      1 +
+      '. Resource Tier ' +
+      resTier['resourceTierId'] +
+      ' ' +
+      resTier['resourceTierName'] +
+      '\n'
     );
     resourceIds.push(resTier['resourceTierId']);
     const ewLimit = resTier['edgeWorkerLimits'];
@@ -304,7 +313,7 @@ export async function getContracts() {
     const msg = 'List of contract id\'s associated with this account';
     const contractList = [];
     contractIdList.forEach(function (value) {
-      contractList.push({ ContractIds: value });
+      contractList.push({ContractIds: value});
     });
     if (ewJsonOutput.isJSONOutputMode()) {
       ewJsonOutput.writeJSONOutput(0, msg, contractList);
@@ -384,11 +393,11 @@ export async function getResourceTiers(contractId?: string) {
       resourceTierList.forEach(function (resTier, index) {
         console.log(
           index +
-            1 +
-            '. ResourceTier ' +
-            resTier['resourceTierId'] +
-            ' - ' +
-            resTier['resourceTierName']
+          1 +
+          '. ResourceTier ' +
+          resTier['resourceTierId'] +
+          ' - ' +
+          resTier['resourceTierName']
         );
         const ewLimit = resTier['edgeWorkerLimits'];
         ewLimit.forEach(function (limit) {
@@ -679,7 +688,7 @@ export async function uploadEdgeWorkerVersion(
   } catch (error) {
     const errorObj = JSON.parse(error);
 
-    if (errorObj.type === '/edgeworkers/error-types/edgeworkers-invalid-argument'){
+    if (errorObj.type === '/edgeworkers/error-types/edgeworkers-invalid-argument') {
       return validateEdgeWorkerVersion(tarballPath);
     } else {
       cliUtils.logAndExit(
@@ -821,7 +830,7 @@ export async function showEdgeWorkerActivationOverview(
       `Fetching all Activations for EdgeWorker Id ${ewId}, Version ${versionId}${network ? ', Network ' + network : ''}`
     );
 
-    if (Object.prototype.hasOwnProperty.call(activations, 'activations')){
+    if (Object.prototype.hasOwnProperty.call(activations, 'activations')) {
       activations = activations['activations'];
     }
   } else if (activationId) {
@@ -833,11 +842,11 @@ export async function showEdgeWorkerActivationOverview(
   } else {
     activations = await cliUtils.spinner(
       edgeWorkersSvc.getActivations(ewId, undefined, network, active),
-      `Fetching ${active ? 'active version' : 'all activations' } for EdgeWorker Id ${ewId}${network ? ' on ' + network : ''}`
+      `Fetching ${active ? 'active version' : 'all activations'} for EdgeWorker Id ${ewId}${network ? ' on ' + network : ''}`
     );
     // remove outer envelope of JSON data
 
-    if (Object.prototype.hasOwnProperty.call(activations, 'activations')){
+    if (Object.prototype.hasOwnProperty.call(activations, 'activations')) {
       activations = activations['activations'];
     }
   }
@@ -870,6 +879,108 @@ export async function showEdgeWorkerActivationOverview(
     cliUtils.logAndExit(
       0,
       `INFO: There are currently no Activations for ewId: ${ewId}, version: ${versionId}, activationId: ${activationId}`
+    );
+  }
+}
+
+export async function showEdgeWorkerRevisionOverview(
+  ewId: string,
+  options?: {
+    versionId?: string;
+    activationId?: string;
+    network?: string;
+    pinnedOnly?: boolean;
+    currentlyPinned?: boolean;
+  }
+) {
+  let revisions = null;
+  const revision = [];
+  let versionId = options.versionId;
+  let activationId = options.activationId;
+  let network = options.network;
+  const pinnedOnly = options.pinnedOnly;
+  const currentlyPinned = options.currentlyPinned;
+
+  revisions = await cliUtils.spinner(
+    edgeWorkersSvc.listRevisions(ewId, versionId, activationId, network, pinnedOnly, currentlyPinned),
+    `Fetching all revisions for EdgeWorker Id ${ewId},
+      ${versionId ? ', versionId ' + versionId : ''}
+      ${activationId ? ', activationId ' + activationId : ''}
+      ${network ? ', network ' + network : ''}
+      ${pinnedOnly ? ', pinnedOnly ' + pinnedOnly : ''}
+      ${currentlyPinned ? ', currentlyPinned ' + currentlyPinned : ''}`
+  );
+
+  if (Object.prototype.hasOwnProperty.call(revisions, 'revisions')) {
+    revisions = revisions['revisions'];
+  }
+
+  // check if versionId was empty for messaging
+  if (versionId === undefined || versionId === null) versionId = 'any';
+
+  // check if activationId was empty for messaging
+  if (activationId === undefined || activationId === null) activationId = 'any';
+
+  // check if network was empty for messaging
+  if (network === undefined || network === null) network = 'any';
+
+  // If data was provided format it, otherwise submit an INFO statement that no data was provided
+  if (revisions.length > 0) {
+    Object.keys(revisions).forEach(function (key) {
+      revision.push(
+        filterJsonData(revisions[key], revisionColumnsToKeep)
+      );
+    });
+    const msg = `The following EdgeWorker revisions currently exists for ewId: ${ewId}
+      ${versionId ? ', versionId ' + versionId : ''}
+      ${activationId ? ', activationId ' + activationId : ''}
+      ${network ? ', network ' + network : ''}
+      ${pinnedOnly ? ', pinnedOnly ' + pinnedOnly : ''}
+      ${currentlyPinned ? ', currentlyPinned ' + currentlyPinned : ''}`;
+
+    if (ewJsonOutput.isJSONOutputMode()) {
+      ewJsonOutput.writeJSONOutput(0, msg, revision);
+    } else {
+      cliUtils.logWithBorder(msg);
+      console.table(revision);
+    }
+  } else {
+    cliUtils.logAndExit(
+      0,
+      `INFO: There are currently no revisions for ewId: ${ewId}, version: ${versionId}, activationId: ${activationId}`
+    );
+  }
+}
+
+export async function getRevision(ewId: string, revId: string) {
+  let revisions = null;
+  const revision = [];
+
+  revisions = await cliUtils.spinner(
+    edgeWorkersSvc.getRevision(ewId, revId),
+    `Fetching revision for EdgeWorker Id ${ewId}, revision id ${revId}`
+  );
+  revisions = [revisions];
+
+  // If data was provided format it, otherwise submit an INFO statement that no data was provided
+  if (revisions.length > 0) {
+    Object.keys(revisions).forEach(function (key) {
+      revision.push(
+        filterJsonData(revisions[key], revisionColumnsToKeep)
+      );
+    });
+    const msg = `The following EdgeWorker revisions currently exists for ewId: ${ewId}`;
+
+    if (ewJsonOutput.isJSONOutputMode()) {
+      ewJsonOutput.writeJSONOutput(0, msg, revision);
+    } else {
+      cliUtils.logWithBorder(msg);
+      console.table(revision);
+    }
+  } else {
+    cliUtils.logAndExit(
+      0,
+      `INFO: There are currently no revisions for ewId: ${ewId}, revision id ${revId}`
     );
   }
 }
@@ -996,7 +1107,7 @@ export async function createAuthToken(
       cliUtils.log(`-H '${token}'`);
     } else {
       cliUtils.logWithBorder('Add the following request header to your requests to get additional trace information.');
-      cliUtils.log(token+'\n');
+      cliUtils.log(token + '\n');
     }
   } else {
     cliUtils.logAndExit(1, authToken.error_reason);
@@ -1045,7 +1156,7 @@ export async function getAvailableReports() {
 
   if (availableReports && !availableReports.isError) {
     const msg = 'The following reports are available:';
-    const reportList = availableReports.reports.map((report)=>{
+    const reportList = availableReports.reports.map((report) => {
       return {ReportId: report.reportId, ReportType: report.name};
     });
 
@@ -1069,9 +1180,9 @@ interface Execution {
 }
 
 const getExecutionAverages = (executionArray: Array<Execution>, executionKey: string) => {
-  if (executionArray){
+  if (executionArray) {
     let totalAvg = 0, totalInvocations = 0, eventMax = -1, eventMin = Number.MAX_SAFE_INTEGER;
-    for (const execution of executionArray){
+    for (const execution of executionArray) {
       const {avg, min, max} = execution[executionKey];
 
       totalAvg += avg * execution.invocations;
@@ -1096,11 +1207,11 @@ const getExecutionAverages = (executionArray: Array<Execution>, executionKey: st
 export async function getReport(
   reportId: number,
   start: string,
-  end:string,
+  end: string,
   ewid: string,
   statuses: Array<string>,
   eventHandlers: Array<string>,
-  ) {
+) {
   const report = await cliUtils.spinner(
     edgeWorkersSvc.getReport(reportId, ewid, start, statuses, eventHandlers, end),
     'Getting report...'
@@ -1126,7 +1237,7 @@ export async function getReport(
       cliUtils.logWithBorder(msg);
       let reportOutput;
 
-      switch (report.reportId){
+      switch (report.reportId) {
         case 1: {
           // summary
           const {
@@ -1192,7 +1303,7 @@ export async function getReport(
             }
           }
 
-          if (!reportOutput['success']){
+          if (!reportOutput['success']) {
             // add success count if no successful executions
             reportOutput['success'] = 0;
           }
@@ -1217,9 +1328,9 @@ export async function getReport(
       if (ewJsonOutput.isJSONOutputMode()) {
         ewJsonOutput.writeJSONOutput(0, msg, reportOutput);
       } else {
-        if (Array.isArray(reportOutput)){
+        if (Array.isArray(reportOutput)) {
           // report 1 (summary) will return an array of table objects
-          reportOutput.forEach( (table) => console.table(table));
+          reportOutput.forEach((table) => console.table(table));
         } else {
           console.table(reportOutput);
         }

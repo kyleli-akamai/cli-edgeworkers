@@ -2,29 +2,33 @@
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 import * as configUtils from '../utils/config-utils';
-import { 
-  GROUP_ID, 
-  RESOURCE_TIER_ID, 
-  CONTRACT_ID, 
-  BUNDLE_PATH, 
-  WORKING_DIRECTORY, 
-  DOWNLOAD_PATH, 
-  VERSION_ID, 
+import {
   ACTIVATION_ID,
   ACTIVE,
-  NETWORK,
-  EDGEWORKER_NAME, 
+  BUNDLE_PATH,
+  CONTRACT_ID,
+  CURRENTLY_PINNED,
+  DOWNLOAD_PATH,
+  EDGEWORKER_NAME,
+  END_DATE,
+  EVENT_HANDLERS,
   EXPIRY,
-  FORMAT, 
-  REPORT_ID, 
-  END_DATE, 
-  STATUS, 
-  EVENT_HANDLERS } from './../utils/constants';
+  FORMAT,
+  GROUP_ID,
+  NETWORK,
+  PINNED_ONLY,
+  REPORT_ID,
+  RESOURCE_TIER_ID,
+  STATUS,
+  VERSION_ID,
+  WORKING_DIRECTORY
+} from './../utils/constants';
 import * as cliHandler from './ew-handler';
 import * as httpEdge from '../cli-httpRequest';
-import { ewJsonOutput } from './client-manager';
+import {ewJsonOutput} from './client-manager';
 import * as pkginfo from '../../package.json';
-import { Command } from 'commander';
+import {Command} from 'commander';
+
 const program = new Command();
 const currentYear = new Date().getFullYear();
 const copywrite = '\nCopyright (c) 2019-' + currentYear + ' Akamai Technologies, Inc. Licensed under Apache 2 license.\nYour use of Akamai\'s products and services is subject to the terms and provisions outlined in Akamai\'s legal policies.\nVisit http://github.com/akamai/cli-edgeworkers for detailed documentation';
@@ -92,7 +96,7 @@ program.configureHelp({
   optionTerm: (cmd) =>
     helper.optionTerm(cmd) + '\n\t' + helper.optionDescription(cmd),
 
-  subcommandDescription: () => '' ,
+  subcommandDescription: () => '',
   subcommandTerm: (cmd) =>
     helper.subcommandTerm(cmd) + '\n\t' + helper.subcommandDescription(cmd),
 });
@@ -104,15 +108,13 @@ program
     if (!arg) {
       program.outputHelp();
       cliUtils.logAndExit(0, copywrite);
-    }
-    else {
+    } else {
       const command = (program.commands.find(c => c.name() == arg))
-      ? program.commands.find(c => c.name() == arg)
-      : program.commands.find(c => c.aliases()[0] == arg);
+        ? program.commands.find(c => c.name() == arg)
+        : program.commands.find(c => c.aliases()[0] == arg);
       if (!command) {
         cliUtils.logAndExit(1, `ERROR: Could not find a command for ${arg}`);
-      }
-      else {
+      } else {
         command.outputHelp();
       }
     }
@@ -251,7 +253,7 @@ program
 program
   .command('show-restier <edgeworkerId>')
   .description('View the resource tier associated with an EdgeWorker ID')
-  .action(async function (edgeworkerId) {  
+  .action(async function (edgeworkerId) {
     try {
       await cliHandler.getResourceTierForEwid(edgeworkerId);
     } catch (e) {
@@ -301,7 +303,7 @@ program
   .alias('lv')
   .action(async function (ewId, versionId) {
     try {
-      await cliHandler.showEdgeWorkerIdVersionOverview(ewId, { versionId: versionId, showResult: true });
+      await cliHandler.showEdgeWorkerIdVersionOverview(ewId, {versionId: versionId, showResult: true});
     } catch (e) {
       cliUtils.logAndExit(1, e);
     }
@@ -368,7 +370,7 @@ program
   });
 
 program
-  .command('status <edgeworker-identifier>')  
+  .command('status <edgeworker-identifier>')
   .description('List Activation status of a given EdgeWorker ID')
   .alias('list-activations')
   .option('--versionId <versionId>', 'Version Identifier')
@@ -382,12 +384,51 @@ program
     options['network'] = options.network || configUtils.searchProperty(NETWORK);
 
     // Do not provide both versionId and activationId
-    if (options.activationId && (options.versionId || options.active || options.network) ) {
+    if (options.activationId && (options.versionId || options.active || options.network)) {
       cliUtils.logAndExit(1, 'ERROR: You may not provide the Activation identifier with versionId, network, or activeOnNetwork options.');
     }
 
     try {
       await cliHandler.showEdgeWorkerActivationOverview(ewId, options);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
+  .command('list-revisions <edgeworker-identifier>')
+  .description('List the revision history for a given EdgeWorker ID')
+  .option('--versionId <versionId>', 'Version Identifier')
+  .option('--activationId <activationId>', 'Activation Identifier')
+  .option('--network  <network>', 'Limits the results to versions that were activated on a specific network (STAGING or PRODUCTION)')
+  .option('--pinnedOnly  <network>', 'Limits results to show only currently or previously pinned revisions')
+  .option('--currentlyPinned  <network>', 'Limits results to show only revisions that are currently pinned')
+  .action(async function (ewId, options) {
+    options['versionId'] = options.versionId || configUtils.searchProperty(VERSION_ID);
+    options['activationId'] = options.activationId || configUtils.searchProperty(ACTIVATION_ID);
+    options['network'] = options.network || configUtils.searchProperty(NETWORK);
+    options['pinnedOnly'] = options.pinnedOnly || configUtils.searchProperty(PINNED_ONLY);
+    options['currentlyPinned'] = options.currentlyPinned || configUtils.searchProperty(CURRENTLY_PINNED);
+
+    try {
+      await cliHandler.showEdgeWorkerRevisionOverview(ewId, options);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
+  .command('get-revision <edgeworker-identifier> <revision-identifier>')
+  .description('Get details for a specific revision')
+  .action(async function (ewId, revId) {
+    try {
+      await cliHandler.getRevision(ewId, revId);
     } catch (e) {
       cliUtils.logAndExit(1, e);
     }
@@ -429,10 +470,10 @@ program
     } catch (e) {
       cliUtils.logAndExit(1, e);
     }
-})
-.on('--help', function () {
-  cliUtils.logAndExit(0, copywrite);
-});
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
 
 program
   .command('deactivate <edgeworker-identifier> <network> <version-identifier>')
@@ -534,7 +575,7 @@ get
   .option('--ev, --eventHandlers <eventHandlers>', 'Comma-separated string to filter EdgeWorkers by the event that triggers them. Values: onClientRequest, onOriginRequest, onOriginResponse, onClientResponse, responseProvider.')
   .action(async function (reportId: number, edgeworkerId: string, options) {
     reportId = reportId || configUtils.searchProperty(REPORT_ID);
-    if (!reportId){
+    if (!reportId) {
       cliUtils.logAndExit(1, 'ERROR: Please specify a reportId. To obtain the available report ID run "akamai edgeworkers get reports".');
     }
 
