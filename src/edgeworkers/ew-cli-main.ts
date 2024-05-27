@@ -403,9 +403,10 @@ program
   .description('List the revision history for a given EdgeWorker ID')
   .option('--versionId <versionId>', 'Version Identifier')
   .option('--activationId <activationId>', 'Activation Identifier')
-  .option('--network  <network>', 'Limits the results to versions that were activated on a specific network (STAGING or PRODUCTION)')
-  .option('--pinnedOnly  <network>', 'Limits results to show only currently or previously pinned revisions')
-  .option('--currentlyPinned  <network>', 'Limits results to show only revisions that are currently pinned')
+  .option('--network <network>', 'Limits the results to versions that were activated on a specific network (STAGING or PRODUCTION)')
+  .option('--pinnedOnly', 'Limits results to show only currently or previously pinned revisions')
+  .option('--currentlyPinned', 'Limits results to show only revisions that are currently pinned')
+  .alias('lr')
   .action(async function (ewId, options) {
     options['versionId'] = options.versionId || configUtils.searchProperty(VERSION_ID);
     options['activationId'] = options.activationId || configUtils.searchProperty(ACTIVATION_ID);
@@ -426,6 +427,7 @@ program
 program
   .command('get-revision <edgeworker-identifier> <revision-identifier>')
   .description('Get details for a specific revision')
+  .alias('gr')
   .action(async function (ewId, revId) {
     try {
       await cliHandler.getRevision(ewId, revId);

@@ -53,7 +53,7 @@ function fetchTarball(
         }
       } else {
         try {
-          const errorObj = Buffer.from(error.response.data, 'utf8');
+          const errorObj = Buffer.from(error.response.data as string, 'utf8');
           reject(errorObj.toString());
         } catch (ex) {
           console.error(
