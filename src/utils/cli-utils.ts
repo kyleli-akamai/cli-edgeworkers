@@ -1,8 +1,9 @@
-import * as envUtils from '../utils/env-utils';
+import {Spinner} from 'cli-spinner';
 import inquirer from 'inquirer';
-import { Spinner } from 'cli-spinner';
-import { ewJsonOutput } from '../edgeworkers/client-manager';
-import { ekvJsonOutput } from '../edgekv/client-manager';
+import {ekvJsonOutput} from '../edgekv/client-manager';
+import {ewJsonOutput} from '../edgeworkers/client-manager';
+import * as envUtils from '../utils/env-utils';
+
 const TIME_UNITS: string[] = ['ms', 's', 'min', 'h'];
 const MEMORY_UNITS: string[] = ['B', 'kB', 'MB', 'GB', 'TB'];
 const COUNT_UNITS: string[] = [
@@ -87,7 +88,7 @@ export function toJsonPretty(obj) {
 export function parseIfJSON(value) {
   try {
     return JSON.parse(value);
-  } catch (e) {
+  } catch (_e) {
     return value;
   }
 }
@@ -98,7 +99,7 @@ export function isJSON(str) {
     const result = JSON.parse(str);
     const type = Object.prototype.toString.call(result);
     return type === '[object Object]' || type === '[object Array]';
-  } catch (err) {
+  } catch (_err) {
     return false;
   }
 }
@@ -217,7 +218,7 @@ function bytesToSize(bytes: number, decimals = 2, kilobyte = 1024): string {
 
   const i: number = parseInt(
     String(Math.floor(Math.log(bytes) / Math.log(kilobyte))),
-    10
+    10,
   );
 
   if (i === 0) {
@@ -229,10 +230,16 @@ function bytesToSize(bytes: number, decimals = 2, kilobyte = 1024): string {
   return `${Number(res).toString()} ${MEMORY_UNITS[i]}`;
 }
 
-export function checkOptions (options: Record<string, unknown>, requiredOptions: string[]) {
-  for (const option of requiredOptions){
-    if (!(option in options)){
-      logAndExit(1, `error: required option '--${option} <${option}>' not specified`);
+export function checkOptions(
+  options: Record<string, unknown>,
+  requiredOptions: string[],
+) {
+  for (const option of requiredOptions) {
+    if (!(option in options)) {
+      logAndExit(
+        1,
+        `error: required option '--${option} <${option}>' not specified`,
+      );
     }
   }
 }
@@ -245,7 +252,7 @@ export enum sortDirections {
 export function sortObjectArray(
   objArray: Array<object>,
   key: string,
-  sortDirection: sortDirections
+  sortDirection: sortDirections,
 ) {
   objArray.sort((a, b) => {
     let valA, valB;
@@ -271,4 +278,11 @@ export function sortObjectArray(
 export function isValidEwId(edgeworkerId: string) {
   const ewIdFormat = new RegExp('^[1-9][0-9]+');
   return ewIdFormat.test(edgeworkerId);
-}  
+}
+
+export function changeObjectName(array: any, newObjName: string, oldObjName: string) {
+  array.forEach(i => {
+    i[newObjName] = i[oldObjName];
+    delete i[oldObjName];
+  });
+}
