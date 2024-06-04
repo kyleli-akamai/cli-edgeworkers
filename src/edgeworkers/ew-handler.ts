@@ -811,6 +811,37 @@ export async function downloadTarball(
   }
 }
 
+export async function downloadRevisionTarball(
+  ewId: string,
+  revisionId: string,
+  rawDownloadPath?: string
+) {
+  // Determine where the tarball should be store
+  const downloadPath = determineTarballDownloadDir(
+    ewId,
+    rawDownloadPath
+  );
+  // Build tarball file name as ew_<revision>_<now-as-epoch>.tgz
+  const tarballFileName = `ew_${revisionId}_${Date.now()}.tgz`;
+  const pathToStore = path.join(downloadPath, tarballFileName);
+
+  // First try to fetch tarball
+  const wasDownloaded = await cliUtils.spinner(
+    edgeWorkersSvc.downloadRevisionTarball(ewId, revisionId, pathToStore),
+    `Downloading code bundle for EdgeWorker Id ${ewId} and Revision id ${revisionId}`
+  );
+
+  // if tarball found, then figure out where to store it
+  if (!wasDownloaded.isError) {
+    cliUtils.logAndExit(0, `INFO: File saved @ ${pathToStore}`);
+  } else {
+    cliUtils.logAndExit(
+      1,
+      `ERROR: Code bundle for EdgeWorker Id ${ewId} and Revision id ${revisionId} was not saved. (${wasDownloaded.error_reason})`
+    );
+  }
+}
+
 export async function showEdgeWorkerActivationOverview(
   ewId: string,
   options?: {

@@ -258,6 +258,19 @@ export function downloadTarball(
     .catch((err) => error.handleError(err, 'DOWNLOAD_TARBALL'));
 }
 
+export function downloadRevisionTarball(
+  ewId: string,
+  revisionId: string,
+  downloadPath: string
+) {
+  return getTarball(
+    `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revisionId}/content`,
+    downloadPath
+  )
+    .then((r) => r.state)
+    .catch((err) => error.handleError(err, 'DOWNLOAD_REVISION_TARBALL'));
+}
+
 export function deleteVersion(ewId: string, versionId: string) {
   return httpEdge
     .deleteReq(
