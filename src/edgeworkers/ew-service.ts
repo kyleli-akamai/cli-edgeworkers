@@ -1,8 +1,8 @@
-import * as envUtils from '../utils/env-utils';
-import * as cliUtils from '../utils/cli-utils';
-import * as httpEdge from '../cli-httpRequest';
-import * as error from './ew-error';
 import * as fs from 'fs';
+import * as httpEdge from '../cli-httpRequest';
+import * as cliUtils from '../utils/cli-utils';
+import * as envUtils from '../utils/env-utils';
+import * as error from './ew-error';
 
 export const EDGEWORKERS_API_BASE = '/edgeworkers/v1';
 export const EDGEWORKERS_CLIENT_HEADER = 'X-EW-CLIENT';
@@ -15,7 +15,7 @@ function fetchTarball(
   method: string,
   body,
   headers,
-  downloadPath: string
+  downloadPath: string,
 ) {
   const edge = envUtils.getEdgeGrid();
   let path = pth;
@@ -30,7 +30,6 @@ function fetchTarball(
   // headers[EDGEWORKERS_IDE_HEADER] = 'VSCODE';
   headers['Accept'] = 'application/gzip';
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new Promise<any>((resolve, reject) => {
     edge.auth({
       path,
@@ -46,18 +45,18 @@ function fetchTarball(
         if (contentType.indexOf('gzip') > -1) {
           const buffer = Buffer.from(response.data, 'utf8');
           fs.writeFileSync(downloadPath, buffer);
-          resolve({ state: true });
+          resolve({state: true});
         } else {
           // this shouldn't happen unless Version API changes content-types to non-tarball format
           throw new Error(`ERROR: Unexpected content-type: ${contentType}`);
         }
       } else {
         try {
-          const errorObj = Buffer.from(error.response.data, 'utf8');
+          const errorObj = Buffer.from(error.response.data as string, 'utf8');
           reject(errorObj.toString());
-        } catch (ex) {
+        } catch (_ex) {
           console.error(
-            `Got error code: ${error.response.status} calling ${method} ${path}\n${body}`
+            `Got error code: ${error.response.status} calling ${method} ${path}\n${body}`,
           );
           reject(body);
         }
@@ -70,11 +69,11 @@ function postTarball(path: string, edgeworkerTarballPath) {
   return httpEdge.sendEdgeRequest(
     path,
     'POST',
-    new Uint8Array(fs.readFileSync(edgeworkerTarballPath, { encoding: null })),
+    new Uint8Array(fs.readFileSync(edgeworkerTarballPath, {encoding: null})),
     {
       'Content-Type': 'application/gzip',
     },
-    cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+    cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
   );
 }
 
@@ -86,7 +85,7 @@ export function getGroup(groupId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/groups/${groupId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -95,7 +94,7 @@ export function getAllGroups() {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/groups`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -104,7 +103,7 @@ export function getEdgeWorkerId(ewId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -121,7 +120,7 @@ export function getAllEdgeWorkerIds(groupId?: string, resourceTierId?: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids${queryString}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'LISTALL_EW'));
@@ -130,14 +129,14 @@ export function getAllEdgeWorkerIds(groupId?: string, resourceTierId?: string) {
 export function createEdgeWorkerId(
   groupId: string,
   name: string,
-  resourceTierId: string
+  resourceTierId: string,
 ) {
-  const body = { groupId: groupId, name: name, resourceTierId: resourceTierId };
+  const body = {groupId: groupId, name: name, resourceTierId: resourceTierId};
   return httpEdge
     .postJson(
       `${EDGEWORKERS_API_BASE}/ids`,
       body,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'REGISTER_EW'));
@@ -147,7 +146,7 @@ export function getContracts() {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/contracts`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_CONTRACT'));
@@ -161,7 +160,7 @@ export function getProperties(ewId: string, activeOnly: boolean) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/properties${queryString}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_PROPERTIES'));
@@ -171,7 +170,7 @@ export function getResourceTiers(contractId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/resource-tiers?contractId=${contractId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_RESTIER'));
@@ -181,7 +180,7 @@ export function getResourceTierForEwid(ewId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/resource-tier`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_RESTR_FOR_EW'));
@@ -191,13 +190,13 @@ export function updateEdgeWorkerId(
   ewId: string,
   groupId: string,
   name: string,
-  resourceTierId: string
+  resourceTierId: string,
 ) {
-  if(!cliUtils.isValidEwId(ewId)) {
+  if (!cliUtils.isValidEwId(ewId)) {
     return error.invalidParameterError('UPDATE_EW');
   }
 
-  const body = { groupId: groupId, name: name };
+  const body = {groupId: groupId, name: name};
   if (resourceTierId != undefined && resourceTierId != null) {
     body['resourceTierId'] = resourceTierId;
   }
@@ -205,7 +204,7 @@ export function updateEdgeWorkerId(
     .putJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}`,
       body,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'UPDATE_EW'));
@@ -215,7 +214,7 @@ export function deleteEdgeWorkerId(ewId: string) {
   return httpEdge
     .deleteReq(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'DELETE_EW'));
@@ -225,7 +224,7 @@ export function getAllVersions(ewId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/versions`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -234,7 +233,7 @@ export function getVersionId(ewId: string, versionId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/versions/${versionId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -242,18 +241,18 @@ export function getVersionId(ewId: string, versionId: string) {
 export function uploadTarball(ewId: string, tarballPath: string) {
   return postTarball(
     `${EDGEWORKERS_API_BASE}/ids/${ewId}/versions`,
-    tarballPath
+    tarballPath,
   ).then((r) => r.body);
 }
 
 export function downloadTarball(
   ewId: string,
   versionId: string,
-  downloadPath: string
+  downloadPath: string,
 ) {
   return getTarball(
     `${EDGEWORKERS_API_BASE}/ids/${ewId}/versions/${versionId}/content`,
-    downloadPath
+    downloadPath,
   )
     .then((r) => r.state)
     .catch((err) => error.handleError(err, 'DOWNLOAD_TARBALL'));
@@ -263,16 +262,25 @@ export function deleteVersion(ewId: string, versionId: string) {
   return httpEdge
     .deleteReq(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/versions/${versionId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'DELETE_VERSION'));
 }
 
-export function getActivations(ewId: string, versionId?: string, network?: string, active?: boolean) {
+export function getActivations(
+  ewId: string,
+  versionId?: string,
+  network?: string,
+  active?: boolean,
+) {
   let queryString = '?';
 
-  if ((network ==  undefined || network == null) && (active == undefined || active == null) && (versionId === undefined || versionId === null)) {
+  if (
+    (network == undefined || network == null) &&
+    (active == undefined || active == null) &&
+    (versionId === undefined || versionId === null)
+  ) {
     queryString = '';
   } else {
     if (versionId) {
@@ -291,17 +299,74 @@ export function getActivations(ewId: string, versionId?: string, network?: strin
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/activations${queryString}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_ACTIVATIONS'));
+}
+
+export function listRevisions(
+  ewId: string,
+  versionId?: string,
+  activationId?: string,
+  network?: string,
+  pinnedOnly?: boolean,
+  currentlyPinned?: boolean,
+) {
+  let queryString = '?';
+
+  if (
+    (versionId === undefined || versionId === null) &&
+    (activationId === undefined || activationId === null) &&
+    (network === undefined || network === null) &&
+    (pinnedOnly === undefined || pinnedOnly === null) &&
+    (currentlyPinned === undefined || currentlyPinned === null)
+  ) {
+    queryString = '';
+  } else {
+    if (versionId) {
+      queryString += `version=${versionId}`;
+    }
+    if (activationId) {
+      queryString += `${
+        queryString == '?' ? '' : '&'
+      }activationId=${activationId}`;
+    }
+    if (network) {
+      queryString += `${queryString == '?' ? '' : '&'}network=${network}`;
+    }
+    if (pinnedOnly) {
+      queryString += `${queryString == '?' ? '' : '&'}pinnedOnly=true`;
+    }
+    if (currentlyPinned) {
+      queryString += `${queryString == '?' ? '' : '&'}currentlyPinned=true`;
+    }
+  }
+
+  return httpEdge
+    .getJson(
+      `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions${queryString}`,
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
+    )
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'LIST_REVISIONS'));
+}
+
+export function getRevision(ewId: string, revId: string) {
+  return httpEdge
+    .getJson(
+      `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revId}`,
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
+    )
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'GET_REVISION'));
 }
 
 export function getActivationID(ewId: string, activationId: string) {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/activations/${activationId}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -309,14 +374,14 @@ export function getActivationID(ewId: string, activationId: string) {
 export function createActivationId(
   ewId: string,
   network: string,
-  versionId: string
+  versionId: string,
 ) {
-  const body = { network: network, version: versionId };
+  const body = {network: network, version: versionId};
   return httpEdge
     .postJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/activations`,
       body,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
@@ -325,9 +390,9 @@ export function cloneEdgeworker(
   ewId: string,
   name: string,
   groupId: string,
-  resourceTierId: string
+  resourceTierId: string,
 ) {
-  const body = { resourceTierId: resourceTierId };
+  const body = {resourceTierId: resourceTierId};
   if (groupId != undefined) {
     body['groupId'] = groupId;
   }
@@ -338,7 +403,7 @@ export function cloneEdgeworker(
     .postJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/clone`,
       body,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'CLONE_EW'));
@@ -346,17 +411,14 @@ export function cloneEdgeworker(
 
 export function validateTarball(tarballPath: string) {
   return postTarball(`${EDGEWORKERS_API_BASE}/validations`, tarballPath).then(
-    (r) => r.body
+    (r) => r.body,
   );
 }
 
-export function getAuthToken(
-  hostName: string,
-  expiry: number
-) {
+export function getAuthToken(hostName: string, expiry: number) {
   const urlPath = `${EDGEWORKERS_API_BASE}/secure-token`;
 
-//  If no hostnames are provided then token is created for all hosts
+  //  If no hostnames are provided then token is created for all hosts
   if (!hostName) {
     hostName = '/*';
   }
@@ -367,10 +429,7 @@ export function getAuthToken(
     .catch((err) => error.handleError(err, 'AUTH_TOKEN'));
 }
 
-function buildTokenBody(
-  hostName: string[],
-  expiry: number
-) {
+function buildTokenBody(hostName: string[], expiry: number) {
   const params = {};
 
   if (hostName != undefined && hostName != null) {
@@ -382,42 +441,43 @@ function buildTokenBody(
   }
   return params;
 }
+
 export function deactivateEdgeworker(
   ewId: string,
   network: string,
-  versionId: string
+  versionId: string,
 ) {
-  const body = { network: network, version: versionId };
+  const body = {network: network, version: versionId};
   return httpEdge
     .postJson(
       `${EDGEWORKERS_API_BASE}/ids/${ewId}/deactivations`,
       body,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body);
 }
 
-export function getLimits () {
+export function getLimits() {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/limits`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_LIMITS'));
 }
 
-export function getAvailableReports () {
+export function getAvailableReports() {
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/reports`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_AVAILABLE_REPORTS'));
 }
 
-export function getReport (
+export function getReport(
   reportId: number,
   ewid: string,
   start: string,
@@ -427,17 +487,17 @@ export function getReport (
 ) {
   let queryString = `?start=${start}&edgeWorker=${ewid}`;
   if (end) queryString += `&end=${end}`;
-  for (const status of statuses){
+  for (const status of statuses) {
     queryString += `&status=${status}`;
   }
-  for (const eventHandler of eventHandlers){
+  for (const eventHandler of eventHandlers) {
     queryString += `&eventHandler=${eventHandler}`;
   }
 
   return httpEdge
     .getJson(
       `${EDGEWORKERS_API_BASE}/reports/${reportId}${queryString}`,
-      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT),
     )
     .then((r) => r.body)
     .catch((err) => error.handleError(err, 'GET_REPORT'));
