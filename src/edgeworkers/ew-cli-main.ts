@@ -25,6 +25,8 @@ import {
   STATUS,
   VERSION_ID,
   WORKING_DIRECTORY,
+  ACTIVE_VERSIONS,
+  CURRENTLY_PINNED_REVISIONS
 } from '../utils/constants';
 import * as envUtils from '../utils/env-utils';
 import {ewJsonOutput} from './client-manager';
@@ -622,6 +624,26 @@ program
 
     try {
       await cliHandler.unpinRevision(ewId, revId, options.note);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
+  .command('get-revision-bom <edgeworker-identifier> <revision-identifier>')
+  .description('View details for a specific revision of a composite bundle')
+  .alias('gb')
+  .option('--activeVersions', 'Limit results to show only active versions')
+  .option('--currentlyPinnedRevisions', 'Shows additional information about the revision that\'s currently pinned')
+  .action(async function  (ewId, revisionId, options) {
+    options['activeVersions'] = options.activeVersions || configUtils.searchProperty(ACTIVE_VERSIONS);
+    options['currentlyPinnedRevisions'] = options.currentlyPinnedRevisions || configUtils.searchProperty(CURRENTLY_PINNED_REVISIONS);
+
+    try {
+      await cliHandler.showRevisionBOM(ewId, revisionId, options);
     } catch (e) {
       cliUtils.logAndExit(1, e);
     }

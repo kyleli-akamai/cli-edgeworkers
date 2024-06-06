@@ -1,8 +1,8 @@
 module.exports = {
   setupFiles: [
-    "dotenv/config"
+    'dotenv/config'
   ],
-  setupFilesAfterEnv: ["<rootDir>/tests/console_setup.js"],
+  setupFilesAfterEnv: ['<rootDir>/tests/console_setup.js'],
   transform: {'^.+\\.ts?$': 'ts-jest'},
   testEnvironment: 'node',
   testRegex: '/tests/.*\\.(test|spec)?\\.(ts|tsx)$',

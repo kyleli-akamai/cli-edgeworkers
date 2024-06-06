@@ -469,4 +469,51 @@ describe('ew service tests', () => {
       expect(res).toEqual(mockResponse);
     });
   });
+
+  describe('getRevisionBOM', () => {
+    const mockResponse = {
+      'dependencies': {
+        'redirect-geo-query': {
+          'activeVersion': '4.0',
+          'dependencies': {
+            'common-lib': {
+              'activeVersion': '3.1',
+              'currentRevisionPinNote': 'Disable dynamic reactivation during moratorium',
+              'currentRevisionPinnedTime': '2023-01-01T00:00:00Z',
+              'currentlyPinnedRevisionId': '2-2',
+              'dependencies': {},
+              'edgeWorkerId': 16,
+              'version': '3.1'
+           }
+          },
+          'edgeWorkerId': 23,
+          'version': '4.0'
+    }
+  },
+  'edgeWorkerId': 42,
+  'version': '0.7'
+};
+
+    let getRevisionSpy;
+    beforeEach(() => {
+      getRevisionSpy = jest.spyOn(ewService, 'getRevisionBOM');
+    });
+
+    const ewId = '42';
+    const revId = '3-1';
+
+    it('should return the revision', async () => {
+      getJsonSpy.mockImplementation(async (path, timeout) => {
+        expect(path).toEqual(`${ewService.EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revId}/bom`);
+        expect(timeout).toEqual(defaultTimeout);
+        return Promise.resolve({
+         body: mockResponse,
+         });
+      });
+
+      const res = await ewService.getRevisionBOM(ewId, revId);
+      expect(getRevisionSpy).toHaveBeenCalled();
+      expect(res).toEqual(mockResponse);
+    });
+  });
 });

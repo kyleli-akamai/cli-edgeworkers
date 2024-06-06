@@ -80,6 +80,7 @@ const deactivationColumnsToKeep = [
   'createdTime',
 ];
 const errorColumnsToKeep = ['type', 'message'];
+const GetRevBOMColumnsToKeep = ['library', 'edgeWorkerId', 'version'];
 
 class CompareRevisions {
   dependencies?: RevisionDependencies[] = [];
@@ -974,6 +975,83 @@ export async function showEdgeWorkerActivationOverview(
       0,
       `INFO: There are currently no Activations for ewId: ${ewId}, version: ${versionId}, activationId: ${activationId}`,
     );
+  }
+}
+
+class BOMEntry {
+  edgeWorkerId: string;
+  version: string;
+  activeVersion: string;
+  dependencies: BOMDependency[] = [];
+
+  constructor(bom) {
+    this.edgeWorkerId = bom['edgeWorkerId'];
+    this.version = bom['version'];
+    this.activeVersion = bom['activeVersion'];
+  }
+}
+
+class BOMDependency {
+  library: string;
+  edgeWorkerId: string;
+  version: string;
+  activeVersion: string;
+  constructor(library: string, entry) {
+    this.library = library;
+    this.edgeWorkerId = entry['edgeWorkerId'];
+    this.version = entry['version'];
+    this.activeVersion = entry['activeVersion'];
+  }
+}
+
+export async function showRevisionBOM(ewId: string, revisionId: string, options?: { activeVersions?: boolean; currentlyPinnedRevisions?: boolean; }) {
+  const activeVersions = options.activeVersions;
+  const currentlyPinned = options.currentlyPinnedRevisions;
+
+  const bom = await cliUtils.spinner(
+    edgeWorkersSvc.getRevisionBOM(ewId, revisionId, activeVersions, currentlyPinned),
+    `Fetching BOM for EdgeWorkerId ${ewId} and Revision ${revisionId}`
+  );
+
+  if (ewJsonOutput.isJSONOutputMode()) {
+    const msg = `ewId: ${ewId} and revision: ${revisionId}`;
+    ewJsonOutput.writeJSONOutput(0, msg, bom);
+  } else {
+
+    const results: BOMEntry[] = [];
+
+    const entries = [bom];
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+
+      const bomEntry = new BOMEntry(entry);
+      const deps = entry['dependencies'];
+
+      try {
+        Object.keys(deps).forEach(function (key) {
+          const dependency = deps[key];
+          bomEntry.dependencies.push(new BOMDependency(key, dependency));
+          entries.push(dependency);
+        });
+      } catch { 
+        console.error('An error occurred:', bom);
+      }
+
+      if (bomEntry.dependencies.length > 0) {
+        results.push(bomEntry);
+      }
+    }
+    
+    if (activeVersions) {
+      GetRevBOMColumnsToKeep.push('activeVersion');
+    }
+    results.forEach(bomEntry => {
+      const output = [];
+      Object.keys(bomEntry.dependencies).forEach(function (key) {
+        output.push(filterJsonData(bomEntry.dependencies[key], GetRevBOMColumnsToKeep));
+      });
+      console.table(output);
+    });
   }
 }
 

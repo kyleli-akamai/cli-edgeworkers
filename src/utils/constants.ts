@@ -26,6 +26,8 @@ export const STATUS = 'status';
 export const EVENT_HANDLERS = 'eventHandlers';
 export const PINNED_ONLY = 'pinnedOnly';
 export const CURRENTLY_PINNED = 'currentlyPinned';
+export const ACTIVE_VERSIONS = 'activeVersions';
+export const CURRENTLY_PINNED_REVISIONS = 'currentlyPinnedRevisions';
 
 // Config properties for EdgeKV
 export const ENVIRONMENT = 'environment';
