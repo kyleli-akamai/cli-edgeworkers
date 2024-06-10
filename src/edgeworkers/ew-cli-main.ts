@@ -447,9 +447,9 @@ program
   });
 
 program
-  .command('download <edgeworker-identifier> <revision-identifier>')
+  .command('download-revision <edgeworker-identifier> <revision-identifier>')
   .description('Download the combined code bundle that contains the code and the dependencies that the EdgeWorker executes')
-  .alias('download-revision')
+  .alias('dr')
   .option('--downloadPath <downloadPath>', 'Path to store downloaded combined bundle file; defaults to CLI home directory if not provided')
   .action(async function (ewId, revisionId, options) {
     options['downloadPath'] = options.downloadPath || configUtils.searchProperty(DOWNLOAD_PATH);
