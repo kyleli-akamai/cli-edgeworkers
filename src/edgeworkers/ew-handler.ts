@@ -46,6 +46,12 @@ const revisionColumnsToKeep = [
   'createdTime',
   'revisionActivatedBy',
 ];
+const compareRevisionsColumnsToKeep = [
+  'edgeWorkerId',
+  'library',
+  'previousVersion',
+  'version',
+];
 const deactivationColumnsToKeep = [
   'edgeWorkerId',
   'version',
@@ -56,6 +62,35 @@ const deactivationColumnsToKeep = [
   'createdTime',
 ];
 const errorColumnsToKeep = ['type', 'message'];
+
+class CompareRevisions {
+  dependencies?: RevisionDependencies[] = [];
+  diff?: string;
+  edgeWorkerId?: number;
+  previousVersion?: string;
+  version?: string;
+
+  constructor(rev) {
+    this.diff = rev['diff'];
+    this.edgeWorkerId = rev['edgeWorkerId'];
+    this.previousVersion = rev['previousVersion'];
+    this.version = rev['version'];
+  }
+}
+
+class RevisionDependencies {
+  edgeWorkerId: string;
+  library: string;
+  previousVersion: string;
+  version: string;
+
+  constructor(library: string, revision) {
+    this.edgeWorkerId = revision['edgeWorkerId'];
+    this.library = library;
+    this.previousVersion = revision['previousVersion'];
+    this.version = revision['version'];
+  }
+}
 
 export async function showGroupOverview(groupId: string) {
   let groups = null;
@@ -1015,6 +1050,45 @@ export async function getRevision(ewId: string, revId: string) {
       0,
       `INFO: There are currently no revisions ${paramsMsg}`,
     );
+  }
+}
+
+export async function compareRevisions(ewId: string, revId1: string, revId2: string) {
+  let revisions = null;
+
+  revisions = await cliUtils.spinner(
+    edgeWorkersSvc.compareRevisions(ewId, revId1, revId2),
+    `Comparing revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`
+  );
+  if (ewJsonOutput.isJSONOutputMode()) {
+    const msg = `Revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`;
+    ewJsonOutput.writeJSONOutput(0, msg, revisions);
+  } else {
+    cliUtils.log(revisions);
+    const entries = [revisions];
+    const results: CompareRevisions[] = [];
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const revisionEntry = new CompareRevisions(entry);
+      const deps = entry['dependencies'];
+      if (deps !== undefined) {
+        Object.keys(deps).forEach(function (key) {
+          const dependency = deps[key];
+          revisionEntry.dependencies.push(new RevisionDependencies(key, dependency));
+          entries.push(dependency);
+        });
+        if (revisionEntry.dependencies.length > 0) {
+          results.push(revisionEntry);
+        }
+      }
+    }
+    results.forEach(entry => {
+      const output = [];
+      Object.keys(entry.dependencies).forEach(function (key) {
+        output.push(filterJsonData(entry.dependencies[key], compareRevisionsColumnsToKeep));
+      });
+      console.table(output);
+    });
   }
 }
 

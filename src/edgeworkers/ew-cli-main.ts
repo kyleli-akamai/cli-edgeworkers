@@ -563,6 +563,21 @@ program
   });
 
 program
+  .command('compare-revisions <edgeworker-identifier> <revision-identifier> <revision-identifier>')
+  .description('View dependency differences between two revisions of the same EdgeWorker.')
+  .alias('cr')
+  .action(async function (ewId, revId1, revId2) {
+    try {
+      await cliHandler.compareRevisions(ewId, revId1, revId2);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
   .command('activate <edgeworker-identifier> <network> <version-identifier>')
   .description(
     'Activate a Version for a given EdgeWorker ID on an Akamai Network',
