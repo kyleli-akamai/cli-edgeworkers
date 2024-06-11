@@ -1054,9 +1054,7 @@ export async function getRevision(ewId: string, revId: string) {
 }
 
 export async function compareRevisions(ewId: string, revId1: string, revId2: string) {
-  let revisions = null;
-
-  revisions = await cliUtils.spinner(
+  const revisions = await cliUtils.spinner(
     edgeWorkersSvc.compareRevisions(ewId, revId1, revId2),
     `Comparing revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`
   );
@@ -1064,7 +1062,6 @@ export async function compareRevisions(ewId: string, revId1: string, revId2: str
     const msg = `Revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`;
     ewJsonOutput.writeJSONOutput(0, msg, revisions);
   } else {
-    cliUtils.log(revisions);
     const entries = [revisions];
     const results: CompareRevisions[] = [];
     for (let i = 0; i < entries.length; i++) {
