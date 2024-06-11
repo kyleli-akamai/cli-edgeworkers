@@ -18,6 +18,7 @@ import {
   FORMAT,
   GROUP_ID,
   NETWORK,
+  NOTE,
   PINNED_ONLY,
   REPORT_ID,
   RESOURCE_TIER_ID,
@@ -569,6 +570,24 @@ program
   .action(async function (ewId, revId1, revId2) {
     try {
       await cliHandler.compareRevisions(ewId, revId1, revId2);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
+  .command('activate-revision <edgeworker-identifier> <revision-identifier>')
+  .description('Activate a revision for a given EdgeWorker Id on Akamai Network')
+  .option('--note <note>', 'Note to specify why the revision is being reactivated')
+  .alias('ar')
+  .action(async function (ewId, revId, options) {
+    options['note'] = options.note || configUtils.searchProperty(NOTE);
+
+    try {
+      await cliHandler.activateRevision(ewId, revId, options.note);
     } catch (e) {
       cliUtils.logAndExit(1, e);
     }
