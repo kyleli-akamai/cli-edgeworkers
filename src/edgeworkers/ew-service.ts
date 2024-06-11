@@ -375,6 +375,18 @@ export function getRevision(ewId: string, revId: string) {
     .catch((err) => error.handleError(err, 'GET_REVISION'));
 }
 
+export function compareRevisions(ewId: string, revId1: string, revId2: string) {
+  const body = {revisionId: revId2};
+  return httpEdge
+    .postJson(
+      `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revId1}/compare`,
+      body,
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+    )
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'COMPARE_REVISIONS'));
+}
+
 export function getActivationID(ewId: string, activationId: string) {
   return httpEdge
     .getJson(
