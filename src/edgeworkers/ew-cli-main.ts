@@ -548,19 +548,19 @@ program
   });
 
 program
-	.command('get-revision <edgeworker-identifier> <revision-identifier>')
-	.description('Get details for a specific revision')
-	.alias('gr')
-	.action(async function (ewId, revId) {
-		try {
-			await cliHandler.getRevision(ewId, revId);
-		} catch (e) {
-			cliUtils.logAndExit(1, e);
-		}
-	})
-	.on('--help', function () {
-		cliUtils.logAndExit(0, copywrite);
-	});
+  .command('get-revision <edgeworker-identifier> <revision-identifier>')
+  .description('Get details for a specific revision')
+  .alias('gr')
+  .action(async function (ewId, revId) {
+    try {
+      await cliHandler.getRevision(ewId, revId);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
 
 program
   .command('compare-revisions <edgeworker-identifier> <revision-identifier> <revision-identifier>')
