@@ -1089,6 +1089,38 @@ export async function compareRevisions(ewId: string, revId1: string, revId2: str
   }
 }
 
+export async function activateRevision(
+  ewId: string,
+  revId: string,
+  note?: string
+) {
+  let activations = await cliUtils.spinner(
+    edgeWorkersSvc.activateRevision(ewId, revId, note),
+    `Activating revision: ${revId} for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
+  );
+
+  if (activations) {
+    activations = [activations];
+    const activation = [];
+    Object.keys(activations).forEach(function (key) {
+      activation.push(
+        filterJsonData(activations[key], activationColumnsToKeep)
+      );
+    });
+    const msg = `Revision: ${revId} activated for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`;
+    if (ewJsonOutput.isJSONOutputMode()) {
+      ewJsonOutput.writeJSONOutput(0, msg, activation);
+    } else {
+      console.table(activation);
+    }
+  } else {
+    cliUtils.logAndExit(
+      1,
+      `ERROR: Revision: ${revId} cannot be activated for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
+    );
+  }
+}
+
 export async function createNewActivation(
   ewId: string,
   network: string,

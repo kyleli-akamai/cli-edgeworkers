@@ -16,6 +16,7 @@ export const BUNDLE_PATH = 'bundlePath';
 export const WORKING_DIRECTORY = 'workingDirectory';
 export const DOWNLOAD_PATH = 'downloadPath';
 export const NETWORK = 'network';
+export const NOTE = 'note';
 export const ACL_PATH = 'aclPath';
 export const URL_PATH = 'urlPath';
 export const FORMAT = 'format';
