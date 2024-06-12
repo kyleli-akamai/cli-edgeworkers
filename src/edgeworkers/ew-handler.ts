@@ -52,6 +52,24 @@ const compareRevisionsColumnsToKeep = [
   'previousVersion',
   'version',
 ];
+const pinColumnsToKeep = [
+  'edgeWorkerId',
+  'version',
+  'activationId',
+  'revisionId',
+  'network',
+  'pinnedBy',
+  'pinnedTime',
+];
+const unpinColumnsToKeep = [
+  'edgeWorkerId',
+  'version',
+  'activationId',
+  'revisionId',
+  'network',
+  'unpinnedBy',
+  'unpinnedTime',
+];
 const deactivationColumnsToKeep = [
   'edgeWorkerId',
   'version',
@@ -1117,6 +1135,70 @@ export async function activateRevision(
     cliUtils.logAndExit(
       1,
       `ERROR: Revision: ${revId} cannot be activated for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
+    );
+  }
+}
+
+export async function pinRevision(
+  ewId: string,
+  revId: string,
+  note?: string
+) {
+  let revision = await cliUtils.spinner(
+    edgeWorkersSvc.pinRevision(ewId, revId, note),
+    `Pinning revision: ${revId} for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
+  );
+
+  if (revision) {
+    revision = [revision];
+    const revisionList = [];
+    Object.keys(revision).forEach(function (key) {
+      revisionList.push(
+        filterJsonData(revision[key], pinColumnsToKeep)
+      );
+    });
+    const msg = `Revision: ${revId} pinned for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`;
+    if (ewJsonOutput.isJSONOutputMode()) {
+      ewJsonOutput.writeJSONOutput(0, msg, revision);
+    } else {
+      console.table(revisionList);
+    }
+  } else {
+    cliUtils.logAndExit(
+      1,
+      `ERROR: Revision: ${revId} cannot be pinned for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
+    );
+  }
+}
+
+export async function unpinRevision(
+  ewId: string,
+  revId: string,
+  note?: string
+) {
+  let revision = await cliUtils.spinner(
+    edgeWorkersSvc.unpinRevision(ewId, revId, note),
+    `Unpinning revision: ${revId} for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
+  );
+
+  if (revision) {
+    revision = [revision];
+    const revisionList = [];
+    Object.keys(revision).forEach(function (key) {
+      revisionList.push(
+        filterJsonData(revision[key], unpinColumnsToKeep)
+      );
+    });
+    const msg = `Revision: ${revId} unpinned for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`;
+    if (ewJsonOutput.isJSONOutputMode()) {
+      ewJsonOutput.writeJSONOutput(0, msg, revision);
+    } else {
+      console.table(revisionList);
+    }
+  } else {
+    cliUtils.logAndExit(
+      1,
+      `ERROR: Revision: ${revId} cannot be unpinned for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
     );
   }
 }

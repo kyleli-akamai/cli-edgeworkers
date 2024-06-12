@@ -597,6 +597,40 @@ program
   });
 
 program
+  .command('pin-revision <edgeworker-identifier> <revision-identifier>')
+  .description('Pin an active revision for a given EdgeWorker ID')
+  .option('--note <note>', 'Note to specify why the revision is being pinned')
+  .action(async function (ewId, revId, options) {
+    options['note'] = options.note || configUtils.searchProperty(NOTE);
+
+    try {
+      await cliHandler.pinRevision(ewId, revId, options.note);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
+  .command('unpin-revision <edgeworker-identifier> <revision-identifier>')
+  .description('Unpin an active pinned revision for a given EdgeWorker ID')
+  .option('--note <note>', 'Note to specify why the revision is being unpinned')
+  .action(async function (ewId, revId, options) {
+    options['note'] = options.note || configUtils.searchProperty(NOTE);
+
+    try {
+      await cliHandler.unpinRevision(ewId, revId, options.note);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
+program
   .command('activate <edgeworker-identifier> <network> <version-identifier>')
   .description(
     'Activate a Version for a given EdgeWorker ID on an Akamai Network',

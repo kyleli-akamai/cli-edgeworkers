@@ -402,6 +402,36 @@ export function activateRevision(
     .then((r) => r.body);
 }
 
+export function pinRevision(
+  ewId: string,
+  revId: string,
+  note?: string
+) {
+  const body = {pinNote: note};
+  return httpEdge
+    .postJson(
+      `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revId}/pin`,
+      body,
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+    )
+    .then((r) => r.body);
+}
+
+export function unpinRevision(
+  ewId: string,
+  revId: string,
+  note?: string
+) {
+  const body = {unpinNote: note};
+  return httpEdge
+    .postJson(
+      `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revId}/unpin`,
+      body,
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+    )
+    .then((r) => r.body);
+}
+
 export function getActivationID(ewId: string, activationId: string) {
   return httpEdge
     .getJson(
