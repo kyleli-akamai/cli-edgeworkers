@@ -23,4 +23,5 @@ export enum ErrorMessage {
 	EKV_TIMEOUT_ERROR = 'The EdgeKV service was unable to respond in time. Please retry the request later.',
 	EW_TIMEOUT_ERROR = 'The EdgeWorkers service was unable to respond in time. Please retry the request later.',
 	DOWNLOAD_TARBALL_ERROR = 'Failed to download tarball.',
+	GET_REVISION_BOM_ERROR = 'Failed to get revision bom.',
 }

@@ -318,6 +318,30 @@ export function getActivations(
     .catch((err) => error.handleError(err, 'GET_ACTIVATIONS'));
 }
 
+export function getRevisionBOM(ewId: string, revisionId: string, activeVersions?: boolean, currentlyPinned?: boolean) {
+  let queryString = '?';
+
+  if ((activeVersions ==  undefined || activeVersions == null) &&
+      (currentlyPinned === undefined || currentlyPinned === null)) {
+    queryString = '';
+  } else {
+    if (activeVersions) {
+      queryString += 'includeActiveVersions=true';
+    }
+
+    if (currentlyPinned) {
+      queryString += `${queryString == '?' ? '' : '&'}includeCurrentlyPinnedRevisions=true`;
+    }
+  }
+  return httpEdge
+    .getJson(
+      `${EDGEWORKERS_API_BASE}/ids/${ewId}/revisions/${revisionId}/bom${queryString}`,
+      cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
+    )
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'GET_REVISION_BOM'));
+}
+
 export function listRevisions(
   ewId: string,
   versionId?: string,
