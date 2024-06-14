@@ -25,4 +25,7 @@ export enum ErrorMessage {
 	DOWNLOAD_TARBALL_ERROR = 'Failed to download tarball.',
 	GET_REVISION_BOM_ERROR = 'Failed to get revision bom.',
 	GET_REVISION_ACTIVATION_ERROR = 'Failed to list revision activation.',
+	LIST_REVISIONS_ERROR = 'Failed to list revisions.',
+	GET_REVISION_ERROR = 'Failed to get revisions.',
+	COMPARE_REVISIONS_ERROR = 'Failed to compare revisions.',
 }

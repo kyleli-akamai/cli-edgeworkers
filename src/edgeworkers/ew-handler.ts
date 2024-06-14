@@ -895,6 +895,13 @@ export async function downloadRevisionTarball(
     `Downloading code bundle for EdgeWorker Id ${ewId} and Revision id ${revisionId}`
   );
 
+   if (wasDownloaded.isError) {
+    cliUtils.logAndExit(
+      1,
+      wasDownloaded.error_reason
+    );
+  }
+
   // if tarball found, then figure out where to store it
   if (!wasDownloaded.isError) {
     cliUtils.logAndExit(0, `INFO: File saved @ ${pathToStore}`);
@@ -1022,6 +1029,13 @@ export async function showRevisionBOM(ewId: string, revisionId: string, options?
     edgeWorkersSvc.getRevisionBOM(ewId, revisionId, activeVersions, currentlyPinned),
     `Fetching BOM for EdgeWorkerId ${ewId} and Revision ${revisionId}`
   );
+
+  if (bom.isError) {
+    cliUtils.logAndExit(
+      1,
+      bom.error_reason
+    );
+  }
 
   if (ewJsonOutput.isJSONOutputMode()) {
     const msg = `ewId: ${ewId} and revision: ${revisionId}`;
@@ -1180,8 +1194,8 @@ export async function showEdgeWorkerRevisionOverview(
     }
   } else {
     cliUtils.logAndExit(
-      0,
-      `INFO: There are currently no revisions for ewId: ${ewId}${optionalParamsMsg}`,
+      1,
+      revisions.error_reason,
     );
   }
 }
@@ -1194,6 +1208,13 @@ export async function getRevision(ewId: string, revId: string) {
     edgeWorkersSvc.getRevision(ewId, revId),
     `Fetching revision ${paramsMsg}`,
   );
+
+  if (revisions.isError) {
+    cliUtils.logAndExit(
+      1,
+      revisions.error_reason
+    );
+  }
 
   const msg = `The following EdgeWorker revision currently exists ${paramsMsg}`;
 
@@ -1223,6 +1244,14 @@ export async function compareRevisions(ewId: string, revId1: string, revId2: str
     edgeWorkersSvc.compareRevisions(ewId, revId1, revId2),
     `Comparing revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`
   );
+
+  if (revisions.isError) {
+    cliUtils.logAndExit(
+      1,
+      revisions.error_reason
+    );
+  }
+  
   if (ewJsonOutput.isJSONOutputMode()) {
     const msg = `Revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`;
     ewJsonOutput.writeJSONOutput(0, msg, revisions);
@@ -1264,6 +1293,13 @@ export async function activateRevision(
     `Activating revision: ${revId} for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
   );
 
+  if (activations.isError) {
+    cliUtils.logAndExit(
+      1,
+      activations.error_reason
+    );
+  }
+
   if (activations) {
     activations = [activations];
     const activation = [];
@@ -1296,6 +1332,13 @@ export async function pinRevision(
     `Pinning revision: ${revId} for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
   );
 
+  if (revision.isError) {
+    cliUtils.logAndExit(
+      1,
+      revision.error_reason
+    );
+  }
+
   if (revision) {
     revision = [revision];
     const revisionList = [];
@@ -1327,6 +1370,13 @@ export async function unpinRevision(
     edgeWorkersSvc.unpinRevision(ewId, revId, note),
     `Unpinning revision: ${revId} for EdgeWorker Id: ${ewId}${note ? ' with note: ' + note : ''}`
   );
+
+  if (revision.isError) {
+    cliUtils.logAndExit(
+      1,
+      revision.error_reason
+    );
+  }
 
   if (revision) {
     revision = [revision];
