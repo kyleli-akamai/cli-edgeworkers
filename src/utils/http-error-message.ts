@@ -24,4 +24,5 @@ export enum ErrorMessage {
 	EW_TIMEOUT_ERROR = 'The EdgeWorkers service was unable to respond in time. Please retry the request later.',
 	DOWNLOAD_TARBALL_ERROR = 'Failed to download tarball.',
 	GET_REVISION_BOM_ERROR = 'Failed to get revision bom.',
+	GET_REVISION_ACTIVATION_ERROR = 'Failed to list revision activation.',
 }

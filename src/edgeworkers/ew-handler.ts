@@ -36,6 +36,16 @@ const activationColumnsToKeep = [
   'createdBy',
   'createdTime',
 ];
+const activationColumnsToKeepForLRA = [
+  'edgeWorkerId',
+  'version',
+  'activationId',
+  'revisionId',
+  'status',
+  'network',
+  'createdBy',
+  'createdTime',
+];
 const revisionColumnsToKeep = [
   'edgeWorkerId',
   'version',
@@ -1052,6 +1062,65 @@ export async function showRevisionBOM(ewId: string, revisionId: string, options?
       });
       console.table(output);
     });
+  }
+}
+
+export async function showEdgeWorkerRevisionActivationOverview(
+  ewId: string,
+  options?: { versionId?: string; activationId?: string; network?: string}
+) {
+  let activations = null;
+  const activation = [];
+  let accountId = '';
+  let versionId = options.versionId;
+  let activationId = options.activationId;
+  const network = options.network;
+
+  activations = await cliUtils.spinner(
+      edgeWorkersSvc.getRevisionActivations(ewId, versionId, network),
+      `Fetching all Revision Activations for EdgeWorker Id ${ewId}, Version ${versionId}${network ? ', Network ' + network : ''}`
+  );
+  
+  if (activations.isError) {
+    cliUtils.logAndExit(
+      1,
+      activations.error_reason
+    );
+  }
+  
+  if (Object.prototype.hasOwnProperty.call(activations, 'revisionActivations')){
+      activations = activations['revisionActivations'];
+    }
+
+  // check if versionId was empty for messaging
+  if (versionId === undefined || versionId === null) versionId = 'any';
+
+  // check if activationId was empty for messaging
+  if (activationId === undefined || activationId === null) activationId = 'any';
+
+  // If data was provided format it, otherwise submit an INFO statement that no data was provided
+  if (activations.length > 0) {
+    // accountid should be consistent across returned data set so grab value for messaging from first array element
+    accountId = activations[0]['accountId'];
+
+    Object.keys(activations).forEach(function (key) {
+      activation.push(
+        filterJsonData(activations[key], activationColumnsToKeepForLRA)
+      );
+    });
+
+    const msg = `The following EdgeWorker Revision Activations currently exist for account: ${accountId}, ewId: ${ewId}, version: ${versionId}, activationId: ${activationId}, network: ${network ? network : 'any'}`;
+    if (ewJsonOutput.isJSONOutputMode()) {
+      ewJsonOutput.writeJSONOutput(0, msg, activation);
+    } else {
+      cliUtils.logWithBorder(msg);
+      console.table(activation);
+    }
+  } else {
+    cliUtils.logAndExit(
+      1,
+      activations.error_reason
+    );
   }
 }
 
