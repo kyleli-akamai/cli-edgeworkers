@@ -652,6 +652,33 @@ program
     cliUtils.logAndExit(0, copywrite);
   });
 
+  program
+  .command('list-revision-activations <edgeworker-identifier>')  
+  .description('List Revision Activation status of a given EdgeWorker ID')
+  .alias('lra')
+  .option('--versionId <versionId>', 'Version Identifier')
+  .option('--activationId <activationId>', 'Activation Identifier')
+  .option('--network  <network>', 'Limits the results to versions that were activated on a specific network (STAGING or PRODUCTION)')
+  .action(async function (ewId, options) {
+    options['versionId'] = options.versionId || configUtils.searchProperty(VERSION_ID);
+    options['activationId'] = options.activationId || configUtils.searchProperty(ACTIVATION_ID);
+    options['network'] = options.network || configUtils.searchProperty(NETWORK);
+
+    // Do not provide both versionId and activationId
+    if (options.activationId && (options.versionId || options.network) ) {
+      cliUtils.logAndExit(1, 'ERROR: You may not provide the Activation identifier with versionId or network options.');
+    }
+
+    try {
+      await cliHandler.showEdgeWorkerRevisionActivationOverview(ewId, options);
+    } catch (e) {
+      cliUtils.logAndExit(1, e);
+    }
+  })
+  .on('--help', function () {
+    cliUtils.logAndExit(0, copywrite);
+  });
+
 program
   .command('activate <edgeworker-identifier> <network> <version-identifier>')
   .description(
