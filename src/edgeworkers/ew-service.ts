@@ -321,8 +321,8 @@ export function getActivations(
 export function getRevisionBOM(ewId: string, revisionId: string, activeVersions?: boolean, currentlyPinned?: boolean) {
   let queryString = '?';
 
-  if ((activeVersions ==  undefined || activeVersions == null) &&
-      (currentlyPinned === undefined || currentlyPinned === null)) {
+  if ((activeVersions == undefined || activeVersions == null) &&
+    (currentlyPinned === undefined || currentlyPinned === null)) {
     queryString = '';
   } else {
     if (activeVersions) {
@@ -345,7 +345,7 @@ export function getRevisionBOM(ewId: string, revisionId: string, activeVersions?
 export function getRevisionActivations(ewId: string, versionId?: string, network?: string, activationId?: string) {
   let queryString = '?';
 
-  if ((network ==  undefined || network == null) && (versionId === undefined || versionId === null)) {
+  if ((network == undefined || network == null) && (versionId === undefined || versionId === null)) {
     queryString = '';
   } else {
     if (activationId) {
@@ -367,7 +367,7 @@ export function getRevisionActivations(ewId: string, versionId?: string, network
       cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
     )
     .then((r) => r.body)
-    .catch((err) => error.handleError(err, 'GET_REVISION_ACTIVATION'));
+    .catch((err) => error.handleError(err, 'GET_REVISION_ACTIVATIONS'));
 }
 
 export function listRevisions(
@@ -451,7 +451,8 @@ export function activateRevision(
       body,
       cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
     )
-    .then((r) => r.body);
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'ACTIVATE_REVISION'));
 }
 
 export function pinRevision(
@@ -466,7 +467,8 @@ export function pinRevision(
       body,
       cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
     )
-    .then((r) => r.body);
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'PIN_REVISION'));
 }
 
 export function unpinRevision(
@@ -481,7 +483,8 @@ export function unpinRevision(
       body,
       cliUtils.getTimeout(DEFAULT_EW_TIMEOUT)
     )
-    .then((r) => r.body);
+    .then((r) => r.body)
+    .catch((err) => error.handleError(err, 'UNPIN_REVISION'));
 }
 
 export function getActivationID(ewId: string, activationId: string) {

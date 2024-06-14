@@ -895,7 +895,7 @@ export async function downloadRevisionTarball(
     `Downloading code bundle for EdgeWorker Id ${ewId} and Revision id ${revisionId}`
   );
 
-   if (wasDownloaded.isError) {
+  if (wasDownloaded.isError) {
     cliUtils.logAndExit(
       1,
       wasDownloaded.error_reason
@@ -1013,6 +1013,7 @@ class BOMDependency {
   edgeWorkerId: string;
   version: string;
   activeVersion: string;
+
   constructor(library: string, entry) {
     this.library = library;
     this.edgeWorkerId = entry['edgeWorkerId'];
@@ -1021,7 +1022,10 @@ class BOMDependency {
   }
 }
 
-export async function showRevisionBOM(ewId: string, revisionId: string, options?: { activeVersions?: boolean; currentlyPinnedRevisions?: boolean; }) {
+export async function showRevisionBOM(ewId: string, revisionId: string, options?: {
+  activeVersions?: boolean;
+  currentlyPinnedRevisions?: boolean;
+}) {
   const activeVersions = options.activeVersions;
   const currentlyPinned = options.currentlyPinnedRevisions;
 
@@ -1057,7 +1061,7 @@ export async function showRevisionBOM(ewId: string, revisionId: string, options?
           bomEntry.dependencies.push(new BOMDependency(key, dependency));
           entries.push(dependency);
         });
-      } catch { 
+      } catch {
         console.error('An error occurred:', bom);
       }
 
@@ -1065,7 +1069,7 @@ export async function showRevisionBOM(ewId: string, revisionId: string, options?
         results.push(bomEntry);
       }
     }
-    
+
     if (activeVersions) {
       GetRevBOMColumnsToKeep.push('activeVersion');
     }
@@ -1081,7 +1085,7 @@ export async function showRevisionBOM(ewId: string, revisionId: string, options?
 
 export async function showEdgeWorkerRevisionActivationOverview(
   ewId: string,
-  options?: { versionId?: string; activationId?: string; network?: string}
+  options?: { versionId?: string; activationId?: string; network?: string }
 ) {
   let activations = null;
   const activation = [];
@@ -1091,20 +1095,20 @@ export async function showEdgeWorkerRevisionActivationOverview(
   const network = options.network;
 
   activations = await cliUtils.spinner(
-      edgeWorkersSvc.getRevisionActivations(ewId, versionId, network),
-      `Fetching all Revision Activations for EdgeWorker Id ${ewId}, Version ${versionId}${network ? ', Network ' + network : ''}`
+    edgeWorkersSvc.getRevisionActivations(ewId, versionId, network),
+    `Fetching all Revision Activations for EdgeWorker Id ${ewId}, Version ${versionId}${network ? ', Network ' + network : ''}`
   );
-  
+
   if (activations.isError) {
     cliUtils.logAndExit(
       1,
       activations.error_reason
     );
   }
-  
-  if (Object.prototype.hasOwnProperty.call(activations, 'revisionActivations')){
-      activations = activations['revisionActivations'];
-    }
+
+  if (Object.prototype.hasOwnProperty.call(activations, 'revisionActivations')) {
+    activations = activations['revisionActivations'];
+  }
 
   // check if versionId was empty for messaging
   if (versionId === undefined || versionId === null) versionId = 'any';
@@ -1173,6 +1177,13 @@ export async function showEdgeWorkerRevisionOverview(
     ),
     `Fetching all revisions for EdgeWorker Id: ${ewId}${optionalParamsMsg}`,
   );
+
+  if (revisions.isError) {
+    cliUtils.logAndExit(
+      1,
+      revisions.error_reason
+    );
+  }
 
   const msg = `The following EdgeWorker revisions currently exists for ewId: ${ewId}${optionalParamsMsg}`;
 
@@ -1251,7 +1262,7 @@ export async function compareRevisions(ewId: string, revId1: string, revId2: str
       revisions.error_reason
     );
   }
-  
+
   if (ewJsonOutput.isJSONOutputMode()) {
     const msg = `Revisions ${revId1} and ${revId2} for EdgeWorker Id ${ewId}`;
     ewJsonOutput.writeJSONOutput(0, msg, revisions);
